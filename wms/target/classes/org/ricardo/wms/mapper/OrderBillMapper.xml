@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ricardo.wms.mapper.OrderBillMapper" >
+  <resultMap id="BaseResultMap" type="org.ricardo.wms.domain.OrderBill" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sn" property="sn" jdbcType="VARCHAR" />
+    <result column="vdate" property="vdate" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="totalAmount" property="totalAmount" jdbcType="DECIMAL" />
+    <result column="totalNumber" property="totalNumber" jdbcType="DECIMAL" />
+    <result column="auditTime" property="auditTime" jdbcType="TIMESTAMP" />
+    <result column="inputTime" property="inputTime" jdbcType="TIMESTAMP" />
+    <association property="inputUser" columnPrefix="iu_" javaType="Employee">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+    <association property="auditor" javaType="Employee" columnPrefix="au_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+    <association property="supplier" javaType="Supplier" columnPrefix="s_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+    <collection property="items" column="id" ofType="OrderBillItem"
+                select="org.ricardo.wms.mapper.OrderBillItemMapper.selectByOrderBillId"/>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from `orderbill`
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="org.ricardo.wms.domain.OrderBill" useGeneratedKeys="true" keyProperty="id" >
+    insert into `orderbill` (sn, vdate, status, 
+      totalAmount, totalNumber, auditTime, 
+      inputTime, inputUser_id, auditor_id, 
+      supplier_id)
+    values (#{sn,jdbcType=VARCHAR}, #{vdate,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
+      #{totalAmount,jdbcType=DECIMAL}, #{totalNumber,jdbcType=DECIMAL}, #{auditTime,jdbcType=TIMESTAMP}, 
+      #{inputTime,jdbcType=TIMESTAMP}, #{inputUser.id,jdbcType=BIGINT}, #{auditor.id,jdbcType=BIGINT},
+      #{supplier.id,jdbcType=BIGINT})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="org.ricardo.wms.domain.OrderBill" >
+    update `orderbill`
+    set sn = #{sn,jdbcType=VARCHAR},
+      vdate = #{vdate,jdbcType=TIMESTAMP},
+      totalAmount = #{totalAmount,jdbcType=DECIMAL},
+      totalNumber = #{totalNumber,jdbcType=DECIMAL},
+      supplier_id = #{supplier.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateStatus">
+    update orderbill
+    SET
+      auditor_id = #{auditor.id},
+      auditTime = #{auditTime},
+      status = #{status}
+    where id = #{id}
+  </update>
+  <sql id="base_columns">
+    bill.id, bill.sn, bill.vdate, bill.status, bill.totalAmount, bill.totalNumber, bill.auditTime, bill.inputTime,
+    iu.id iu_id, iu.name  iu_name,
+    au.id au_id, au.name  au_name,
+    s.id s_id, s.name s_name
+  </sql>
+  <sql id="base_from">
+    orderbill bill join employee iu on bill.inputUser_id = iu.id
+                  left join employee au on bill.auditor_id = au.id
+                  join supplier s on bill.supplier_id = s.id
+  </sql>
+  <sql id="base_where">
+    <where>
+      <if test="beginDate != null">
+        and bill.vdate >= #{beginDate}
+      </if>
+      <if test="endDate != null">
+        and bill.vdate &lt;= #{endDate}
+      </if>
+      <if test="supplierId > 0">
+        and bill.supplier_id = #{supplierId}
+      </if>
+      <if test="status > -1">
+        and bill.status = #{status}
+      </if>
+    </where>
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select <include refid="base_columns"/>
+    from <include refid="base_from"/>
+    where bill.id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, sn, vdate, status, totalAmount, totalNumber, auditTime, inputTime, inputUser_id, 
+    auditor_id, supplier_id
+    from `orderbill`
+  </select>
+  <select id="queryForCount" resultType="int">
+    SELECT count(bill.id)
+    FROM  <include refid="base_from"/>
+    <include refid="base_where"/>
+  </select>
+  <select id="queryForList" resultMap="BaseResultMap">
+    SELECT <include refid="base_columns"/>
+    from <include refid="base_from"/>
+    <include refid="base_where"/>
+    limit #{start}, #{pageSize}
+  </select>
+</mapper>

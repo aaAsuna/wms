@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ricardo.wms.mapper.EmployeeMapper">
+  <resultMap id="BaseResultMap" type="org.ricardo.wms.domain.Employee">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="password" jdbcType="VARCHAR" property="password" />
+    <result column="email" jdbcType="VARCHAR" property="email" />
+    <result column="age" jdbcType="INTEGER" property="age" />
+    <result column="admin" jdbcType="BIT" property="admin" />
+    <result column="dept_id" jdbcType="BIGINT" property="deptId" />
+    <collection property="dept" ofType="Department">
+      <id column="d_id" property="id"/>
+      <result column="d_name" property="name"/>
+    </collection>
+    <collection property="roles" ofType="Role" column="id"
+                select="org.ricardo.wms.mapper.RoleMapper.selectRoleByEmployeeId"
+    />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from `employee`
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="batchDelete">
+    delete from employee
+    where id in <foreach collection="array" open="(" separator="," close=")" item="item">
+                  ${item}
+                </foreach>
+  </delete>
+  <delete id="deleteRelation">
+    delete from employee_role
+    where employee_id = #{employeeId}
+  </delete>
+  <insert id="insert" keyProperty="id" parameterType="org.ricardo.wms.domain.Employee" useGeneratedKeys="true">
+    insert into `employee` (name, password, email, 
+      age, admin, dept_id)
+    values (#{name,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, 
+      #{age,jdbcType=INTEGER}, #{admin,jdbcType=BIT}, #{deptId,jdbcType=BIGINT})
+  </insert>
+  <insert id="saveRelation">
+    insert into employee_role (employee_id, role_id)
+    VALUES (#{employeeId},#{roleId})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="org.ricardo.wms.domain.Employee">
+    update `employee`
+    set name = #{name,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      age = #{age,jdbcType=INTEGER},
+      admin = #{admin,jdbcType=BIT},
+      dept_id = #{deptId,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select <include refid="base_columns"/>
+    from  employee e LEFT JOIN department d ON e.dept_id = d.id
+    where e.id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, password, email, age, admin, dept_id
+    from `employee`
+  </select>
+  <sql id="base_where">
+    <where>
+      <if test="keyword!=null and keyword!=''">
+        AND (name like '%' #{keyword} '%' OR email like '%' #{keyword} '%')
+      </if>
+      <if test="deptId >0">
+        AND dept_id = #{deptId}
+      </if>
+    </where>
+  </sql>
+  <sql id="base_from">
+    employee e LEFT JOIN department d ON e.dept_id = d.id
+  </sql>
+  <sql id="base_columns">
+    e.id, e.name, e.password, e.email, e.age, e.admin, e.dept_id,
+    d.id d_id, d.name d_name
+  </sql>
+  <select id="queryForCount" resultType="int">
+    select count(e.id) from employee e
+    <include refid="base_where"/>
+  </select>
+  <select id="queryForList" resultMap="BaseResultMap">
+    select <include refid="base_columns"/>
+    from <include refid="base_from"/>
+    <include refid="base_where"/>
+    limit #{start},#{pageSize}
+  </select>
+  <select id="selectByUsernameAndPassword" resultType="Employee">
+    select id, name, password, email, age, admin, dept_id
+    from `employee`
+    where name = #{name} and password = #{password}
+  </select>
+
+</mapper>

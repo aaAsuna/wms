@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.ricardo.wms.mapper.ChartMapper">
+    <select id="queryForOrder" resultType="map">
+      SELECT
+        ${groupBy} groupType,
+        sum(item.amount) totalAmount,
+        sum(item.number) totalNumber
+        from orderbillitem item
+            JOIN orderbill bill ON item.bill_id = bill.id
+            JOIN employee iu ON bill.inputUser_id = iu.id
+            JOIN product p ON item.product_id = p.id
+            JOIN supplier s ON s.id = bill.supplier_id
+        <where>
+            bill.status = 1
+            <if test="beginDate != null">
+                AND bill.vdate >= #{beginDate}
+            </if>
+            <if test="endDate != null">
+                AND bill.vdate &lt;= #{endDate}
+            </if>
+            <if test="supplierId > 0">
+                AND bill.supplier_id = #{supplierId}
+            </if>
+            <if test="brandId > 0">
+                AND p.brand_id = #{brandId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND (p.name like '%' #{keyword} '%' or p.sn like '%' #{keyword} '%')
+            </if>
+        </where>
+        GROUP BY ${groupBy}
+    </select>
+    <select id="queryForSale" resultType="map">
+        SELECT
+          ${groupBy} groupType,
+          sum(sa.number) totalNumber,
+          sum(sa.saleAmount) totalAmount,
+          sum(sa.saleAmount - sa.costAmount) grossProfit
+        FROM saleaccount sa join employee sm on sa.saleman_id = sm.id
+             join product p on sa.product_id = p.id
+             join client c on sa.client_id = c.id
+             <where>
+                 <if test="beginDate != null">
+                     AND sa.vdate >= #{beginDate}
+                 </if>
+                 <if test="endDate != null">
+                     AND sa.vdate &lt;= #{endDate}
+                 </if>
+                 <if test="clientId > 0">
+                     AND sa.client_id = #{clientId}
+                 </if>
+                 <if test="brandId > 0">
+                     AND p.brand_id = #{brandId}
+                 </if>
+                 <if test="keyword != null and keyword != ''">
+                     AND (p.name like '%' #{keyword} '%' or p.sn like '%' #{keyword} '%')
+                 </if>
+             </where>
+        group by ${groupBy}
+    </select>
+</mapper>

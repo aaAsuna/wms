@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ricardo.wms.mapper.ProductStockMapper" >
+  <resultMap id="BaseResultMap" type="org.ricardo.wms.domain.ProductStock" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="price" property="price" jdbcType="DECIMAL" />
+    <result column="storeNumber" property="storeNumber" jdbcType="DECIMAL" />
+    <result column="amount" property="amount" jdbcType="DECIMAL" />
+    <association property="product" javaType="Product" columnPrefix="p_">
+      <id column="id" property="name"/>
+      <result column="sn" property="sn"/>
+      <result column="brandName" property="brandName"/>
+    </association>
+    <association property="depot" javaType="Depot" columnPrefix="d_">
+      <id column="id" property="id"/>
+      <result column="name" property="name"/>
+    </association>
+  </resultMap>
+  <insert id="insert" parameterType="org.ricardo.wms.domain.ProductStock" useGeneratedKeys="true" keyProperty="id" >
+    insert into `productstock` (price, storeNumber, amount, 
+      product_id, depot_id)
+    values (#{price,jdbcType=DECIMAL}, #{storeNumber,jdbcType=DECIMAL}, #{amount,jdbcType=DECIMAL}, 
+      #{product.id,jdbcType=BIGINT}, #{depot.id,jdbcType=BIGINT})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="ProductStock" >
+    update `productstock`
+    set price = #{price,jdbcType=DECIMAL},
+      storeNumber = #{storeNumber,jdbcType=DECIMAL},
+      amount = #{amount,jdbcType=DECIMAL},
+      product_id = #{product.id,jdbcType=BIGINT},
+      depot_id = #{depot.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <sql id="base_columns">
+    ps.id, ps.storeNumber, ps.price, ps.amount,
+    d.id d_id, d.name d_name,
+    p.id p_id, p.name p_name, p.sn p_sn, p.brandName p_brandName
+  </sql>
+  <sql id="base_from">
+    productstock ps JOIN depot d on ps.depot_id = d.id
+                    JOIN product p ON ps.product_id = p.id
+  </sql>
+  <sql id="base_where">
+    <where>
+      <if test="keyword != null and keyword != ''">
+        and (p.name LIKE '%' #{keyword} '%' or p.sn like '%' #{keyword} '%')
+      </if>
+      <if test="depotId > -1">
+        and ps.depot_id = #{depotId}
+      </if>
+      <if test="brandId > -1">
+        and p.brand_id = #{brandId}
+      </if>
+      <if test="limitNumber > 0">
+        and ps.storeNumber &lt; #{limitNumber}
+      </if>
+    </where>
+  </sql>
+  <select id="selectByProductIdAndDepotId" resultMap="BaseResultMap">
+    select <include refid="base_columns"/>
+    from <include refid="base_from"/>
+    WHERE ps.product_id = #{productId} AND ps.depot_id = #{depotId}
+  </select>
+
+  <select id="queryForCount" resultType="int">
+    select count(ps.id)
+    from <include refid="base_from"/>
+    <include refid="base_where"/>
+  </select>
+  <select id="queryForList" resultMap="BaseResultMap">
+    select <include refid="base_columns"/>
+    FROM <include refid="base_from"/>
+    <include refid="base_where"/>
+    limit #{start}, #{pageSize}
+  </select>
+</mapper>

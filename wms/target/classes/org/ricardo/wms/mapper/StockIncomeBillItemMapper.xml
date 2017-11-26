@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ricardo.wms.mapper.StockIncomeBillItemMapper">
+    <resultMap id="BaseResultMap" type="org.ricardo.wms.domain.StockIncomeBillItem">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="costPrice" property="costPrice" jdbcType="DECIMAL"/>
+        <result column="number" property="number" jdbcType="DECIMAL"/>
+        <result column="amount" property="amount" jdbcType="DECIMAL"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="bill_id" property="billId" jdbcType="BIGINT"/>
+        <association property="product" javaType="Product" columnPrefix="p_">
+            <id column="id" property="id"/>
+            <result column="name" property="name"/>
+            <result column="brandName" property="brandName"/>
+        </association>
+    </resultMap>
+    <insert id="insert" parameterType="org.ricardo.wms.domain.StockIncomeBillItem" useGeneratedKeys="true" keyProperty="id">
+    insert into `stockincomebillitem` (costPrice, number, amount, remark, product_id, bill_id)
+    values (#{costPrice,jdbcType=DECIMAL}, #{number,jdbcType=DECIMAL}, #{amount,jdbcType=DECIMAL},
+      #{remark,jdbcType=VARCHAR}, #{product.id,jdbcType=BIGINT}, #{billId,jdbcType=BIGINT})
+  </insert>
+    <delete id="deleteByBillId">
+        DELETE FROM stockincomebillitem WHERE bill_id = #{id}
+    </delete>
+    <select id="selectByStockIncomeBillId" resultMap="BaseResultMap">
+    select item.id, item.costPrice, item.number, item.amount, item.remark, item.bill_id,
+           p.id p_id, p.name p_name, p.brandName p_brandName
+    from stockincomebillitem item join product p on item.product_id = p.id
+    where item.bill_id = #{billId}
+  </select>
+</mapper>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="org.ricardo.wms.mapper.RoleMapper" >
+  <resultMap id="BaseResultMap" type="org.ricardo.wms.domain.Role" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="sn" property="sn" jdbcType="VARCHAR" />
+    <collection property="permissions" ofType="Permission" column="id"
+                select="org.ricardo.wms.mapper.PermissionMapper.selectAllByRoleId"/>
+    <collection property="menus" ofType="SystemMenu" column="id"
+                select="org.ricardo.wms.mapper.SystemMenuMapper.selectAllByRoleId"/>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from `role`
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="batchDelete">
+    delete from role
+    where id in <foreach collection="array" open="(" separator="," close=")" item="item">
+    ${item}
+  </foreach>
+  </delete>
+  <delete id="deleteRelation">
+    delete from role_permission
+    where role_id = #{roleId}
+  </delete>
+  <delete id="deleteMenuRelation">
+     delete from role_menu
+    where role_id = #{roleId}
+  </delete>
+  <insert id="insert" parameterType="org.ricardo.wms.domain.Role" useGeneratedKeys="true" keyProperty="id" >
+    insert into `role` (name, sn)
+    values (#{name,jdbcType=VARCHAR}, #{sn,jdbcType=VARCHAR})
+  </insert>
+  <insert id="saveRelation">
+    insert into role_permission (role_id, permission_id)
+    VALUES (#{roleId},#{permissionId})
+  </insert>
+  <insert id="saveMenuRelation">
+    insert into role_menu (role_id, menu_id)
+    VALUES (#{roleId},#{menuId})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="org.ricardo.wms.domain.Role" >
+    update `role`
+    set name = #{name,jdbcType=VARCHAR},
+      sn = #{sn,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, name, sn
+    from `role`
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultType="Role">
+    select id, name, sn
+    from `role`
+  </select>
+  <select id="queryForCount" resultType="int">
+    select count(id) from role
+  </select>
+  <select id="queryForList" resultType="Role">
+    select id,name,sn from role
+    limit #{start},#{pageSize}
+  </select>
+  <select id="selectRoleByEmployeeId" resultType="Role">
+    select r.id, r.name ,r.sn from employee_role er JOIN role r ON er.role_id = r.id
+    where er.employee_id = #{employeeId};
+  </select>
+</mapper>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        ">
+        <context:annotation-config/>
+        <mvc:annotation-driven/>
+        <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+            <property name="prefix" value="/WEB-INF/views/"/>
+            <property name="suffix" value=".jsp"/>
+        </bean>
+        <!-- 统一异常处理-->
+        <bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+            <!-- 定义默认的异常处理页面，当该异常类型的注册时使用 -->
+            <property name="defaultErrorView" value="common/error"/>
+            <!-- 定义异常处理页面用来获取异常信息的变量名，默认名为exception -->
+            <property name="exceptionAttribute" value="ex"/>
+            <!-- 定义需要特殊处理的异常，用类名或完全路径名作为key，异常也页名作为值 -->
+            <property name="exceptionMappings">
+                <value>
+                    org.ricardo.wms.exception.SystemException=common/nopermission
+                    <!-- 这里还可以继续扩展不同异常类型的异常处理 -->
+                </value>
+            </property>
+        </bean>
+        <!--配置拦截器-->
+        <mvc:interceptors>
+            <mvc:interceptor>
+                <mvc:mapping path="/**"/>
+                <mvc:exclude-mapping path="/login.do"/>
+                <bean class="org.ricardo.wms.web.interceptpr.CheckLoginInterceptor"/>
+            </mvc:interceptor>
+            <mvc:interceptor>
+                <mvc:mapping path="/**"/>
+                <mvc:exclude-mapping path="/login.do"/>
+                <bean class="org.ricardo.wms.web.interceptpr.SercurityInterceptor"/>
+            </mvc:interceptor>
+        </mvc:interceptors>
+
+        <!-- 文件上传 -->
+        <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+            <property name="maxInMemorySize" value="10000"/>
+        </bean>
+
+
+</beans>

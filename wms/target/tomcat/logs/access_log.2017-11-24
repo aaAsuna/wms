@@ -1,0 +1,9 @@
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /employee/query.do HTTP/1.1" 302 - http-bio-80-exec-1 51
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /login.html HTTP/1.1" 200 1254 http-bio-80-exec-3 95
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /style/login_css.css HTTP/1.1" 200 1752 http-bio-80-exec-4 18
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /js/system/login.js HTTP/1.1" 200 441 http-bio-80-exec-6 2
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /js/jquery/jquery.js HTTP/1.1" 200 248260 http-bio-80-exec-2 23
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /js/plugins/form/jquery.form.min.js HTTP/1.1" 200 15248 http-bio-80-exec-5 11
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /images/login/btn.jpg HTTP/1.1" 200 919 http-bio-80-exec-9 2
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /images/login/login.png HTTP/1.1" 200 142489 http-bio-80-exec-10 9
+0:0:0:0:0:0:0:1 - - [24/Nov/2017:23:05:57 +0800] "GET /favicon.ico HTTP/1.1" 404 973 http-bio-80-exec-10 2
